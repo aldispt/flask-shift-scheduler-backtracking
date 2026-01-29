@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Dashboard Jadwal Shift - Mie Gacoan</title>
+
+<style>
+:root {
+    --red:#c70000; --bg:#f5f5f5; --card:#fff;
+    --green:#2ecc71; --orange:#f39c12;
+}
+body{margin:0;font-family:Segoe UI;background:var(--bg)}
+header{background:linear-gradient(90deg,#c70000,#ff1e1e);color:#fff;padding:20px}
+.container{padding:25px}
+.card{background:var(--card);padding:20px;border-radius:10px;
+      box-shadow:0 6px 18px rgba(0,0,0,.08);margin-bottom:25px}
+h3{color:var(--red);border-left:5px solid var(--red);padding-left:10px}
+.warning{background:#fff3cd;color:#856404;padding:10px;border-left:5px solid var(--orange)}
+table{width:100%;border-collapse:collapse;margin-top:15px}
+th{background:var(--red);color:#fff;padding:10px}
+td{border:1px solid #ddd;padding:10px;text-align:center}
+td small{display:block;color:#666}
+.status-over{background:#e74c3c;color:#fff}
+.status-normal{background:var(--orange)}
+.status-light{background:var(--green);color:#fff}
+button{background:var(--red);color:#fff;padding:10px 22px;border:0;border-radius:8px}
+</style>
+</head>
+
+<body>
+<header>
+<h1>{{ toko }}</h1>
+<p>Dashboard Manajer • Penjadwalan Shift</p>
+</header>
+
+<div class="container">
+
+<div class="card">
+<h3>Pengaturan Jadwal</h3>
+
+{% if warning %}<div class="warning">⚠️ {{ warning }}</div>{% endif %}
+
+<form method="POST">
+{% for k,r in karyawan_role.items() %}
+<label>
+<input type="checkbox" name="karyawan" value="{{ k }}"
+{% if k in karyawan_terpilih %}checked{% endif %}>
+{{ k }} ({{ r }})
+</label><br>
+{% endfor %}
+
+<p>Maksimal shift: <b>5/minggu</b> (kebijakan manajemen)</p>
+
+{% if total_solusi > 0 %}
+<p>
+<b>Pilih Solusi:</b>
+<select name="solusi">
+{% for i in range(total_solusi) %}
+<option value="{{ i }}" {% if i==solusi_index %}selected{% endif %}>
+Solusi ke-{{ i+1 }}
+</option>
+{% endfor %}
+</select>
+</p>
+{% endif %}
+
+Cari Jadwal Karyawan:
+<select name="cari_nama">
+<option value="">-- Pilih --</option>
+{% for k in karyawan_role %}
+<option value="{{ k }}">{{ k }}</option>
+{% endfor %}
+</select><br><br>
+
+<button type="submit">Generate Jadwal</button>
+</form>
+</div>
+
+{% if jadwal %}
+<div class="card">
+<h3>Jadwal Shift Mingguan</h3>
+<p>Ditemukan <b>{{ total_solusi }}</b> solusi | Menampilkan <b>Solusi ke-{{ solusi_index+1 }}</b></p>
+
+<table>
+<tr>
+<th>Hari</th>
+{% for s in shift %}
+<th>{{ s }}<br><small>{{ jam_shift[s] }}</small></th>
+{% endfor %}
+</tr>
+
+{% for i in range(hari|length) %}
+<tr>
+<td><b>{{ hari[i] }}</b></td>
+{% for nama in jadwal[i] %}
+<td>{{ nama }}<small>{{ karyawan_role[nama] }}<br>{{ jam_shift[shift[loop.index0]] }}</small></td>
+{% endfor %}
+</tr>
+{% endfor %}
+</table>
+</div>
+
+<div class="card">
+<h3>Beban Kerja</h3>
+<table>
+<tr><th>Karyawan</th><th>Shift</th><th>Status</th></tr>
+{% for k,j in beban.items() %}
+<tr>
+<td>{{ k }}</td><td>{{ j }}</td>
+{% if j>=5 %}<td class="status-over">Overload</td>
+{% elif j>=3 %}<td class="status-normal">Normal</td>
+{% else %}<td class="status-light">Ringan</td>{% endif %}
+</tr>
+{% endfor %}
+</table>
+</div>
+{% endif %}
+
+{% if hasil_cari %}
+<div class="card">
+<h3>Hasil Pencarian Jadwal Karyawan</h3>
+<p>Karyawan: <b>{{ nama_cari }}</b></p>
+
+<table>
+<tr>
+<th>Hari</th>
+<th>Shift</th>
+</tr>
+{% for h,s in hasil_cari %}
+<tr>
+<td>{{ h }}</td>
+<td>{{ s }}</td>
+</tr>
+{% endfor %}
+</table>
+</div>
+{% endif %}
+
+
+</div>
+</body>
+</html>
